@@ -1,12 +1,14 @@
 <script setup>
-import InvertedBarStats from "../components/InvertedBarStats.vue";
+import StatsTable from "../components/StatsTable.vue";
+import InvertedChart from "../components/InvertedChart.vue";
 </script>
 
 <template>
   <div class="dashboard">
     <h1>Comparación de Jugadores</h1>
 
-    <InvertedBarStats />
+    <StatsTable />
+    <InvertedChart player1="sernuxo" player2="ribbly" />
   </div>
 </template>
 
