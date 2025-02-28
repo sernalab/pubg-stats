@@ -1,16 +1,6 @@
 <!-- src/components/InvertedBarStats.vue -->
 <template>
   <div class="stats-comparison">
-    <div class="stats-header">
-      <div class="player-info left">
-        <h2>{{ player2 }}</h2>
-      </div>
-      <div class="vs-indicator">VS</div>
-      <div class="player-info right">
-        <h2>{{ player1 }}</h2>
-      </div>
-    </div>
-
     <div v-if="loading" class="loading">Cargando estadísticas...</div>
 
     <div v-else-if="error" class="error">
@@ -96,7 +86,7 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import { comparePlayersStats } from "../services/pubgService";
+import { comparePlayersStats } from "../services/comparisonService";
 
 export default {
   name: "InvertedBarStats",
@@ -205,38 +195,6 @@ export default {
   color: #ffffff;
   max-width: 900px;
   margin: 0 auto;
-}
-
-.stats-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
-
-.player-info {
-  flex: 1;
-}
-
-.player-info.left {
-  text-align: left;
-}
-
-.player-info.right {
-  text-align: right;
-}
-
-.player-info h2 {
-  color: #ffc300;
-  margin: 0;
-  font-size: 24px;
-}
-
-.vs-indicator {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 0 20px;
-  color: #fff;
 }
 
 .loading,

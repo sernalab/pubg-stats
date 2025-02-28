@@ -1,19 +1,20 @@
 <script setup>
 import StatsTable from "../components/StatsTable.vue";
-import InvertedChart from "../components/InvertedChart.vue";
+import PubgFppComparisonChart from "../components/PubgFppComparisonChart.vue";
 </script>
 
 <template>
   <div class="dashboard">
-    <h1>Comparación de Jugadores</h1>
+    <h1>Ribbly <span class="versus">VS</span> Sernuxo</h1>
 
+    <PubgFppComparisonChart player1="sernuxo" player2="ribbly" />
     <StatsTable />
-    <InvertedChart player1="sernuxo" player2="ribbly" />
   </div>
 </template>
 
 <style scoped>
-.dashboard {
-  padding: 20px;
+.versus {
+  color: #f1c40f;
+  font-size: 5.5rem;
 }
 </style>
