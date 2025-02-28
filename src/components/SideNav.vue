@@ -1,9 +1,9 @@
 <template>
   <aside class="sidenav">
-    <h2>Menú</h2>
+    <img class="logo" src="../assets/pubg-logo.png" alt="logo pubg" />
     <ul>
-      <li><a href="#">Dashboard</a></li>
-      <li><a href="#">Reportes</a></li>
+      <li><a href="#">Más datos Ribbly</a></li>
+      <li><a href="#">Más datos sernuxo</a></li>
       <li><a href="#">Configuración</a></li>
     </ul>
   </aside>
@@ -13,7 +13,7 @@
 .sidenav {
   width: 250px;
   height: 100vh;
-  background: #2c3e50;
+  background: #1d1f26;
   color: white;
   padding: 20px;
   position: fixed;
@@ -21,9 +21,8 @@
   top: 0;
 }
 
-.sidenav h2 {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
+.sidenav img {
+  height: 200px;
 }
 
 .sidenav ul {
