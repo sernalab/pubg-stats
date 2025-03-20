@@ -2,6 +2,7 @@
   <aside class="sidenav">
     <img class="logo" src="../assets/pubg-logo.png" alt="logo pubg" />
     <ul>
+      <li><a href="/">Home</a></li>
       <li><a href="#">Más datos Ribbly</a></li>
       <li><a href="#">Más datos sernuxo</a></li>
       <li><a href="#">Configuración</a></li>

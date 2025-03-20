@@ -1,4 +1,3 @@
-<!-- src/components/InvertedBarStats.vue -->
 <template>
   <div class="stats-comparison">
     <div v-if="loading" class="loading">Cargando estadísticas...</div>
@@ -25,6 +24,20 @@
             <td class="right-value">{{ getPlayer1Stat("kills") }}</td>
           </tr>
 
+          <!-- Headshots -->
+          <tr>
+            <td class="left-value">{{ getPlayer2Stat("headshotKills") }}</td>
+            <td class="stat-name">Headshots</td>
+            <td class="right-value">{{ getPlayer1Stat("headshotKills") }}</td>
+          </tr>
+
+          <!-- Asistencias -->
+          <tr>
+            <td class="left-value">{{ getPlayer2Stat("assists") }}</td>
+            <td class="stat-name">Asistencias</td>
+            <td class="right-value">{{ getPlayer1Stat("assists") }}</td>
+          </tr>
+
           <!-- Partidas -->
           <tr>
             <td class="left-value">{{ getPlayer2Stat("roundsPlayed") }}</td>
@@ -38,38 +51,10 @@
             <td class="stat-name">Victorias</td>
             <td class="right-value">{{ getPlayer1Stat("wins") }}</td>
           </tr>
-
-          <!-- Top 10 -->
-          <tr>
-            <td class="left-value">{{ getPlayer2Stat("top10s") }}</td>
-            <td class="stat-name">Top 10</td>
-            <td class="right-value">{{ getPlayer1Stat("top10s") }}</td>
-          </tr>
-
-          <!-- K/D Ratio -->
-          <tr>
-            <td class="left-value">{{ getPlayer2Stat("kdRatio") }}</td>
-            <td class="stat-name">K/D Ratio</td>
-            <td class="right-value">{{ getPlayer1Stat("kdRatio") }}</td>
-          </tr>
-
-          <!-- Win Ratio -->
-          <tr>
-            <td class="left-value">{{ getPlayer2Stat("winRatio") }}%</td>
-            <td class="stat-name">Win Ratio</td>
-            <td class="right-value">{{ getPlayer1Stat("winRatio") }}%</td>
-          </tr>
-
-          <!-- Top 10 Ratio -->
-          <tr>
-            <td class="left-value">{{ getPlayer2Stat("top10Ratio") }}%</td>
-            <td class="stat-name">Top 10 Ratio</td>
-            <td class="right-value">{{ getPlayer1Stat("top10Ratio") }}%</td>
-          </tr>
         </tbody>
       </table>
 
-      <!-- Sección de Modalidad de Juego -->
+      <!-- Selector de Modalidad de Juego -->
       <div class="game-mode-selector">
         <button
           v-for="mode in gameModes"
@@ -89,35 +74,43 @@ import { ref, onMounted } from "vue";
 import { comparePlayersStats } from "../services/comparisonService";
 
 export default {
-  name: "InvertedBarStats",
-  setup() {
-    const player1 = ref("sernuxo");
-    const player2 = ref("Ribbly");
+  name: "StatsTable",
+  props: {
+    player1: {
+      type: String,
+      default: "sernuxo",
+    },
+    player2: {
+      type: String,
+      default: "Ribbly", // Corregido: R mayúscula
+    },
+  },
+  setup(props) {
     const loading = ref(true);
     const error = ref("");
     const playersData = ref(null);
     const selectedMode = ref("global");
 
     const gameModes = [
-      { value: "global", label: "Todos" },
+      { value: "global", label: "Todos FPP" },
       { value: "solo-fpp", label: "Solo FPP" },
       { value: "duo-fpp", label: "Duo FPP" },
       { value: "squad-fpp", label: "Squad FPP" },
     ];
 
-    // Cargar datos utilizando el servicio existente
+    // Cargar datos utilizando el servicio
     const loadPlayersData = async () => {
       loading.value = true;
       error.value = "";
 
       try {
         // Usar el servicio de comparación
-        const result = await comparePlayersStats(player1.value, player2.value);
-        playersData.value = result;
+        const result = await comparePlayersStats(props.player1, props.player2);
 
-        // Verificar si hay errores
-        if (result.error) {
-          error.value = result.error;
+        if (result && !result.error) {
+          playersData.value = result;
+        } else {
+          error.value = result.error || "Error al cargar los datos";
         }
       } catch (err) {
         console.error("Error en la comparación:", err);
@@ -127,7 +120,6 @@ export default {
       }
     };
 
-    // Obtener estadística para jugador 1
     const getPlayer1Stat = (statName) => {
       if (
         !playersData.value ||
@@ -138,17 +130,16 @@ export default {
       }
 
       if (selectedMode.value === "global") {
-        return playersData.value.player1.stats.global[statName] || 0;
+        return playersData.value.player1.stats.fppOnly?.[statName] || 0;
       } else {
         return (
-          playersData.value.player1.stats.modes[selectedMode.value]?.[
+          playersData.value.player1.stats.modes?.[selectedMode.value]?.[
             statName
           ] || 0
         );
       }
     };
 
-    // Obtener estadística para jugador 2
     const getPlayer2Stat = (statName) => {
       if (
         !playersData.value ||
@@ -159,10 +150,10 @@ export default {
       }
 
       if (selectedMode.value === "global") {
-        return playersData.value.player2.stats.global[statName] || 0;
+        return playersData.value.player2.stats.fppOnly?.[statName] || 0;
       } else {
         return (
-          playersData.value.player2.stats.modes[selectedMode.value]?.[
+          playersData.value.player2.stats.modes?.[selectedMode.value]?.[
             statName
           ] || 0
         );
@@ -174,8 +165,8 @@ export default {
     });
 
     return {
-      player1,
-      player2,
+      player1: props.player1,
+      player2: props.player2,
       loading,
       error,
       selectedMode,
@@ -189,12 +180,12 @@ export default {
 
 <style scoped>
 .stats-comparison {
-  background-color: #222429;
+  background-color: #1d1f26;
   border-radius: 10px;
   padding: 20px;
   color: #ffffff;
   max-width: 900px;
-  margin: 0 auto;
+  margin: 20px auto;
 }
 
 .loading,
@@ -221,7 +212,7 @@ export default {
 }
 
 .stats-table th {
-  background-color: #1d1f26;
+  background-color: #15171c;
   color: #ffc300;
   font-weight: bold;
 }
@@ -241,11 +232,11 @@ export default {
 }
 
 .left-value {
-  color: #60a5fa;
+  color: #3498db; /* Azul para player2 (Ribbly) */
 }
 
 .right-value {
-  color: #f87171;
+  color: #f1c40f; /* Amarillo para player1 (Sernuxo) */
 }
 
 .stat-name {

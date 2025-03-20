@@ -1,84 +1,57 @@
-// Fachada que integra todos los servicios de PUBG
-
-import * as playersService from "./playersService";
-import * as statsService from "./statsService";
-
-/**
- * Obtiene información y estadísticas completas de un jugador
- * @param {string} playerName - Nombre del jugador
- * @returns {Promise<Object>} - Datos completos del jugador
- */
-async function getPlayerInfo(playerName) {
-  try {
-    // Obtener información básica del jugador
-    const playerResponse = await playersService.getPlayerByName(playerName);
-
-    // Si no se encuentra el jugador, devolver null
-    if (!playerResponse.data || playerResponse.data.length === 0) {
-      console.warn(`No se encontró al jugador: ${playerName}`);
-      return null;
-    }
-
-    const playerData = playerResponse.data[0];
-    const playerId = playerData.id;
-
-    // Obtener estadísticas lifetime
-    const statsResponse = await statsService.getPlayerLifetimeStats(playerId);
-
-    // Procesar estadísticas
-    const processedStats = statsService.processPlayerStats(statsResponse);
-
-    // Combinar toda la información
-    return {
-      player: playerData,
-      stats: processedStats,
-    };
-  } catch (error) {
-    console.error(
-      `Error al obtener información completa para ${playerName}:`,
-      error
-    );
-    throw error;
-  }
-}
+// src/services/comparisonService.js
+import { getPlayerByName } from "./playerService";
+import { getPlayerLifetimeStats, processPlayerStats } from "./statsService";
 
 /**
- * Compara estadísticas de dos jugadores
+ * Compara las estadísticas de dos jugadores
  * @param {string} player1Name - Nombre del primer jugador
  * @param {string} player2Name - Nombre del segundo jugador
- * @returns {Promise<Object>} - Comparación de estadísticas
+ * @returns {Promise<Object>} - Objeto con las estadísticas comparativas
  */
 async function comparePlayersStats(player1Name, player2Name) {
   try {
-    // Obtener información de ambos jugadores en paralelo
-    const [player1Info, player2Info] = await Promise.all([
-      getPlayerInfo(player1Name),
-      getPlayerInfo(player2Name),
+    // Paso 1: Obtener IDs de los jugadores
+    const [player1Data, player2Data] = await Promise.all([
+      getPlayerByName(player1Name),
+      getPlayerByName(player2Name),
     ]);
 
-    // Si alguno de los jugadores no se encuentra, devolver lo que se pudo encontrar
-    if (!player1Info || !player2Info) {
-      return {
-        player1: player1Info,
-        player2: player2Info,
-        error: !player1Info
-          ? `No se encontró a ${player1Name}`
-          : `No se encontró a ${player2Name}`,
-      };
+    // Verificar que se encontraron los jugadores
+    if (!player1Data?.data?.length) {
+      throw new Error(`No se encontró al jugador: ${player1Name}`);
+    }
+    if (!player2Data?.data?.length) {
+      throw new Error(`No se encontró al jugador: ${player2Name}`);
     }
 
-    // Devolver la comparación
+    const player1Id = player1Data.data[0].id;
+    const player2Id = player2Data.data[0].id;
+
+    // Paso 2: Obtener estadísticas lifetime de los jugadores
+    const [player1Stats, player2Stats] = await Promise.all([
+      getPlayerLifetimeStats(player1Id),
+      getPlayerLifetimeStats(player2Id),
+    ]);
+
+    // Paso 3: Procesar estadísticas
+    const processedPlayer1Stats = processPlayerStats(player1Stats);
+    const processedPlayer2Stats = processPlayerStats(player2Stats);
+
+    // Paso 4: Devolver comparación
     return {
-      player1: player1Info,
-      player2: player2Info,
+      player1: {
+        player: player1Data.data[0],
+        stats: processedPlayer1Stats,
+      },
+      player2: {
+        player: player2Data.data[0],
+        stats: processedPlayer2Stats,
+      },
     };
   } catch (error) {
-    console.error(
-      `Error al comparar jugadores ${player1Name} y ${player2Name}:`,
-      error
-    );
-    throw error;
+    console.error("Error al comparar jugadores:", error);
+    return { error: error.message };
   }
 }
 
-export { getPlayerInfo, comparePlayersStats };
+export { comparePlayersStats };
