@@ -152,7 +152,6 @@ export default {
 
 <style scoped>
 .stats-comparison {
-  background-color: #1d1f26;
   border-radius: 10px;
   padding: 20px;
   color: #ffffff;
@@ -170,6 +169,7 @@ export default {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 25px;
+  border-radius: 10px;
 }
 
 .stats-table th,

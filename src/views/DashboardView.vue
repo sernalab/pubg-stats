@@ -101,11 +101,8 @@ export default {
 
 <style scoped>
 .dashboard {
-  padding: 1rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 20px;
 }
-
 h1 {
   text-align: center;
   margin-bottom: 2rem;
@@ -160,16 +157,5 @@ h1 {
 
 .retry-button:hover {
   background-color: #2980b9;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .charts {
-    grid-template-columns: 1fr;
-  }
-
-  .versus {
-    font-size: 2rem;
-  }
 }
 </style>

@@ -46,7 +46,8 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 100;
+  height: 70px;
+  z-index: 1000;
 }
 
 .header-container {
@@ -97,44 +98,5 @@ export default {
 
 .nav-link.router-link-active {
   border-bottom: 2px solid #f1c40f;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .header-container {
-    flex-direction: column;
-    padding: 0.6rem;
-  }
-
-  .logo-section {
-    margin-bottom: 0.6rem;
-  }
-
-  .main-nav {
-    width: 100%;
-    justify-content: space-between;
-    overflow-x: auto;
-    padding-bottom: 0.3rem;
-  }
-
-  .nav-link {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 550px) {
-  .text {
-    display: none;
-  }
-
-  .icon {
-    margin-right: 0;
-    font-size: 1.4rem;
-  }
-
-  .main-nav {
-    justify-content: space-around;
-  }
 }
 </style>

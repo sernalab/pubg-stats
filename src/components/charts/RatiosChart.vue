@@ -1,9 +1,29 @@
 <template>
   <div class="chart-container">
     <div v-if="!playerData" class="loading">Sin datos disponibles</div>
-    <div v-else id="pubg-chart">
+    <div v-else id="ratios-chart">
+      <div class="chart-title">Ratios de Rendimiento</div>
+
+      <div class="legend">
+        <div class="legend-item">
+          <span
+            class="color-box"
+            :style="{ backgroundColor: '#3498db' }"
+          ></span>
+          <span>{{ player2 }}</span>
+        </div>
+        <div class="legend-item">
+          <span
+            class="color-box"
+            :style="{ backgroundColor: '#f1c40f' }"
+          ></span>
+          <span>{{ player1 }}</span>
+        </div>
+      </div>
+
       <apexchart
         type="bar"
+        height="250"
         :options="chartOptions"
         :series="series"
       ></apexchart>
@@ -42,22 +62,32 @@ export default {
     ]);
 
     // Categorías de ratios
-    const categories = ["K/D Ratio", "Win Ratio", "Top 10 Ratio"];
+    const categories = ["K/D Ratio", "Win Ratio (%)", "Top 10 Ratio (%)"];
 
-    // Opciones del gráfico simplificadas
+    // Opciones del gráfico mejoradas
     const chartOptions = ref({
       chart: {
         type: "bar",
-        stacked: true,
         toolbar: { show: false },
         fontFamily: "Roboto, Arial, sans-serif",
         background: "transparent",
+        animations: {
+          enabled: true,
+          easing: "easeinout",
+          speed: 800,
+        },
       },
-      colors: ["#1d1f26", "#f1c40f"],
+      colors: ["#3498db", "#f1c40f"],
       plotOptions: {
         bar: {
           horizontal: true,
-          dataLabels: { position: "center" },
+          barHeight: "75%",
+          borderRadius: 6,
+          distributed: false,
+          dataLabels: {
+            position: "center",
+          },
+          columnWidth: "90%",
         },
       },
       dataLabels: {
@@ -65,23 +95,73 @@ export default {
         style: {
           colors: ["#fff", "#000"],
           fontWeight: "bold",
+          fontSize: "14px",
         },
         formatter: function (val) {
-          return parseFloat(Math.abs(val)).toFixed(2);
+          // Mostrar el valor real sin multiplicar
+          return parseFloat(Math.abs(val) / 5).toFixed(2);
         },
       },
-      grid: { show: false },
+      stroke: {
+        width: 0,
+      },
+      grid: {
+        show: false,
+        padding: {
+          left: 10,
+          right: 10,
+        },
+      },
       xaxis: {
         categories,
         labels: {
           formatter: function (val) {
-            return parseFloat(Math.abs(val)).toFixed(2);
+            // Mostrar el valor real en el eje X
+            return parseFloat(Math.abs(val) / 5).toFixed(2);
+          },
+          style: {
+            fontSize: "14px",
+            colors: "#cccccc",
           },
         },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
+      yaxis: {
+        labels: {
+          style: {
+            fontSize: "14px",
+            colors: "#f1c40f",
+            fontWeight: "bold",
+          },
+        },
+      },
       legend: { show: false },
+      tooltip: {
+        enabled: true,
+        theme: "dark",
+        y: {
+          formatter: function (val) {
+            // Mostrar el valor real en el tooltip
+            return parseFloat(Math.abs(val) / 5).toFixed(2);
+          },
+        },
+      },
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            dataLabels: {
+              fontSize: "12px",
+            },
+            yaxis: {
+              labels: {
+                fontSize: "12px",
+              },
+            },
+          },
+        },
+      ],
     });
 
     // Actualizar datos cuando cambia playerData prop
@@ -91,21 +171,36 @@ export default {
       const player1Stats = props.playerData.player1?.stats?.fppOnly || {};
       const player2Stats = props.playerData.player2?.stats?.fppOnly || {};
 
-      // Función auxiliar para convertir ratios a números y escalarlos
+      // Comprobando los datos originales para diagnóstico
+      console.log("Datos de ratios originales:", {
+        player1: {
+          kdRatio: player1Stats.kdRatio,
+          winRatio: player1Stats.winRatio,
+          top10Ratio: player1Stats.top10Ratio,
+        },
+        player2: {
+          kdRatio: player2Stats.kdRatio,
+          winRatio: player2Stats.winRatio,
+          top10Ratio: player2Stats.top10Ratio,
+        },
+      });
+
+      // Función auxiliar para convertir ratios a números
       const prepareRatio = (value) => {
         // Asegurar que el valor es un número
         const numValue = parseFloat(value) || 0;
-        // Escalar para mejor visualización
+        // Escalar para mejor visualización (mantenemos *5 como tenías)
         return numValue * 5;
       };
 
+      // Cambio a valores directos (sin negativos)
       series.value = [
         {
           name: props.player2,
           data: [
-            -Math.abs(prepareRatio(player2Stats.kdRatio)),
-            -Math.abs(prepareRatio(player2Stats.winRatio)),
-            -Math.abs(prepareRatio(player2Stats.top10Ratio)),
+            prepareRatio(player2Stats.kdRatio),
+            prepareRatio(player2Stats.winRatio),
+            prepareRatio(player2Stats.top10Ratio),
           ],
         },
         {
@@ -134,6 +229,36 @@ export default {
 .chart-container {
   margin-top: 20px;
   border-radius: 10px;
+  background-color: #1d1f26;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-title {
+  font-size: 18px;
+  color: #f1c40f;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
 }
 
 .loading {
