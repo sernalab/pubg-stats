@@ -13,12 +13,4 @@ import DashboardView from "./views/DashboardView.vue";
 </template>
 
 <style scoped>
-.app {
-  display: flex;
-}
-
-.content {
-  flex: 1;
-  padding: 20px;
-}
 </style>

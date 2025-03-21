@@ -11,11 +11,6 @@ async function getPlayerLifetimeStats(playerId) {
     const response = await fetchPubgApi(
       `/players/${playerId}/seasons/lifetime`
     );
-    console.log(
-      `Datos originales de la API para el jugador ${playerId}:`,
-      response
-    );
-
     return response;
   } catch (error) {
     console.error(
