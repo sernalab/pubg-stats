@@ -4,12 +4,10 @@ import DashboardView from "./views/DashboardView.vue";
 </script>
 
 <template>
-  <div class="app">
-    <SideNav />
-    <main class="content">
-      <DashboardView />
-    </main>
-  </div>
+  <SideNav />
+  <main class="content">
+    <DashboardView />
+  </main>
 </template>
 
 <style scoped>

@@ -1,13 +1,9 @@
 <template>
   <div class="stats-comparison">
-    <div v-if="loading" class="loading">Cargando estadísticas...</div>
-
-    <div v-else-if="error" class="error">
-      {{ error }}
-    </div>
+    <div v-if="!playerData" class="loading">Sin datos disponibles</div>
 
     <div v-else class="stats-container">
-      <!-- Tabla de Datos Básicos -->
+      <!-- Tabla de Datos -->
       <table class="stats-table">
         <thead>
           <tr>
@@ -45,11 +41,25 @@
             <td class="right-value">{{ getPlayer1Stat("roundsPlayed") }}</td>
           </tr>
 
-          <!-- Victorias -->
+          <!-- K/D Ratio -->
           <tr>
-            <td class="left-value">{{ getPlayer2Stat("wins") }}</td>
-            <td class="stat-name">Victorias</td>
-            <td class="right-value">{{ getPlayer1Stat("wins") }}</td>
+            <td class="left-value">{{ getPlayer2Stat("kdRatio") }}</td>
+            <td class="stat-name">K/D Ratio</td>
+            <td class="right-value">{{ getPlayer1Stat("kdRatio") }}</td>
+          </tr>
+
+          <!-- Win Ratio -->
+          <tr>
+            <td class="left-value">{{ getPlayer2Stat("winRatio") }}%</td>
+            <td class="stat-name">Win Ratio</td>
+            <td class="right-value">{{ getPlayer1Stat("winRatio") }}%</td>
+          </tr>
+
+          <!-- Top 10 Ratio -->
+          <tr>
+            <td class="left-value">{{ getPlayer2Stat("top10Ratio") }}%</td>
+            <td class="stat-name">Top 10 Ratio</td>
+            <td class="right-value">{{ getPlayer1Stat("top10Ratio") }}%</td>
           </tr>
         </tbody>
       </table>
@@ -70,8 +80,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
-import { comparePlayersStats } from "../services/comparisonService";
+import { ref } from "vue";
 
 export default {
   name: "StatsTable",
@@ -82,13 +91,14 @@ export default {
     },
     player2: {
       type: String,
-      default: "Ribbly", // Corregido: R mayúscula
+      default: "Ribbly",
+    },
+    playerData: {
+      type: Object,
+      default: null,
     },
   },
   setup(props) {
-    const loading = ref(true);
-    const error = ref("");
-    const playersData = ref(null);
     const selectedMode = ref("global");
 
     const gameModes = [
@@ -98,42 +108,16 @@ export default {
       { value: "squad-fpp", label: "Squad FPP" },
     ];
 
-    // Cargar datos utilizando el servicio
-    const loadPlayersData = async () => {
-      loading.value = true;
-      error.value = "";
-
-      try {
-        // Usar el servicio de comparación
-        const result = await comparePlayersStats(props.player1, props.player2);
-
-        if (result && !result.error) {
-          playersData.value = result;
-        } else {
-          error.value = result.error || "Error al cargar los datos";
-        }
-      } catch (err) {
-        console.error("Error en la comparación:", err);
-        error.value = `Ocurrió un error: ${err.message}`;
-      } finally {
-        loading.value = false;
-      }
-    };
-
     const getPlayer1Stat = (statName) => {
-      if (
-        !playersData.value ||
-        !playersData.value.player1 ||
-        !playersData.value.player1.stats
-      ) {
+      if (!props.playerData || !props.playerData.player1?.stats) {
         return "-";
       }
 
       if (selectedMode.value === "global") {
-        return playersData.value.player1.stats.fppOnly?.[statName] || 0;
+        return props.playerData.player1.stats.fppOnly?.[statName] || 0;
       } else {
         return (
-          playersData.value.player1.stats.modes?.[selectedMode.value]?.[
+          props.playerData.player1.stats.modes?.[selectedMode.value]?.[
             statName
           ] || 0
         );
@@ -141,34 +125,22 @@ export default {
     };
 
     const getPlayer2Stat = (statName) => {
-      if (
-        !playersData.value ||
-        !playersData.value.player2 ||
-        !playersData.value.player2.stats
-      ) {
+      if (!props.playerData || !props.playerData.player2?.stats) {
         return "-";
       }
 
       if (selectedMode.value === "global") {
-        return playersData.value.player2.stats.fppOnly?.[statName] || 0;
+        return props.playerData.player2.stats.fppOnly?.[statName] || 0;
       } else {
         return (
-          playersData.value.player2.stats.modes?.[selectedMode.value]?.[
+          props.playerData.player2.stats.modes?.[selectedMode.value]?.[
             statName
           ] || 0
         );
       }
     };
 
-    onMounted(() => {
-      loadPlayersData();
-    });
-
     return {
-      player1: props.player1,
-      player2: props.player2,
-      loading,
-      error,
       selectedMode,
       gameModes,
       getPlayer1Stat,
@@ -188,15 +160,10 @@ export default {
   margin: 20px auto;
 }
 
-.loading,
-.error {
+.loading {
   text-align: center;
   padding: 30px;
   color: #8a8d94;
-}
-
-.error {
-  color: #e74c3c;
 }
 
 .stats-table {

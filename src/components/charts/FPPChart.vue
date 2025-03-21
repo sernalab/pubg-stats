@@ -1,7 +1,6 @@
 <template>
   <div class="chart-container">
-    <div v-if="loading" class="loading">Cargando estadísticas...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
+    <div v-if="!playerData" class="loading">Sin datos disponibles</div>
     <div v-else id="pubg-chart">
       <apexchart
         type="bar"
@@ -14,8 +13,7 @@
 
 <script>
 import VueApexCharts from "vue3-apexcharts";
-import { ref, onMounted } from "vue";
-import { comparePlayersStats } from "../../services/comparisonService";
+import { ref, watch } from "vue";
 
 export default {
   name: "FPPChart",
@@ -31,17 +29,19 @@ export default {
       type: String,
       default: "sernuxo",
     },
+    playerData: {
+      type: Object,
+      default: null,
+    },
   },
   setup(props) {
-    const loading = ref(true);
-    const error = ref("");
-    const playersData = ref(null);
+    // Datos iniciales para las series
     const series = ref([
       { name: props.player2, data: [0, 0, 0, 0] },
       { name: props.player1, data: [0, 0, 0, 0] },
     ]);
 
-    // Categorías simplificadas
+    // Categorías de estadísticas principales
     const categories = ["Kills", "Headshots", "Asistencias", "Partidas"];
 
     // Opciones del gráfico simplificadas
@@ -80,59 +80,39 @@ export default {
       legend: { show: false },
     });
 
-    const loadPlayersData = async () => {
-      loading.value = true;
-      error.value = "";
-
-      try {
-        const result = await comparePlayersStats(props.player1, props.player2);
-
-        if (result && !result.error) {
-          playersData.value = result;
-          updateChartData();
-        } else {
-          error.value = result.error || "Error al cargar los datos";
-        }
-      } catch (err) {
-        error.value = `Ocurrió un error: ${err.message}`;
-      } finally {
-        loading.value = false;
-      }
-    };
-
+    // Actualizar datos cuando cambia playerData prop
     const updateChartData = () => {
-      if (!playersData.value) return;
+      if (!props.playerData) return;
 
-      const player1Stats = playersData.value.player1?.stats?.fppOnly || {};
-      const player2Stats = playersData.value.player2?.stats?.fppOnly || {};
+      const player1Stats = props.playerData.player1?.stats?.fppOnly || {};
+      const player2Stats = props.playerData.player2?.stats?.fppOnly || {};
 
       series.value = [
         {
           name: props.player2,
           data: [
-            -Math.abs(player2Stats.roundsPlayed || 0),
             -Math.abs(player2Stats.kills || 0),
             -Math.abs(player2Stats.headshotKills || 0),
             -Math.abs(player2Stats.assists || 0),
+            -Math.abs(player2Stats.roundsPlayed || 0),
           ],
         },
         {
           name: props.player1,
           data: [
-            player1Stats.roundsPlayed || 0,
             player1Stats.kills || 0,
             player1Stats.headshotKills || 0,
             player1Stats.assists || 0,
+            player1Stats.roundsPlayed || 0,
           ],
         },
       ];
     };
 
-    onMounted(loadPlayersData);
+    // Observar cambios en los datos para actualizar el gráfico
+    watch(() => props.playerData, updateChartData, { immediate: true });
 
     return {
-      loading,
-      error,
       series,
       chartOptions,
     };
@@ -146,14 +126,9 @@ export default {
   border-radius: 10px;
 }
 
-.loading,
-.error {
+.loading {
   text-align: center;
   padding: 30px;
   color: #8a8d94;
-}
-
-.error {
-  color: #e74c3c;
 }
 </style>
